@@ -25,6 +25,8 @@ config :star, StarWeb.Endpoint,
       "node_modules/webpack/bin/webpack.js",
       "--mode",
       "development",
+      "--config",
+      "webpack.dev.js",
       "--watch-stdin",
       cd: Path.expand("../assets", __DIR__)
     ]
