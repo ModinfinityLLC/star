@@ -1,0 +1,48 @@
+version: 2
+jobs:
+  build:
+    parallelism: 1
+    docker:
+      - image: circleci/elixir:1.8.2-otp-22
+        environment:
+          MIX_ENV: test
+      - image: circleci/postgres:11
+    working_directory: ~/app
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - elixir-build-v1-{{ checksum "mix.lock" }}
+      - run:
+          name: "Install Hex"
+          command: mix local.hex --force
+      - run:
+          name: "Install Rebar"
+          command: mix local.rebar --force
+      - run:
+          name: "Install Elixir dependencies"
+          command: mix deps.get
+      - run:
+          name: "Compile Elixir source"
+          command: mix compile
+      - run:
+          name: "Create the test database"
+          command: mix ecto.create
+      # - run:
+      #     name: "Run Elixir linting (with credo)"
+      #     command: mix credo
+      - run:
+          name: "Run Elixir formatter check"
+          command: mix format --check-formatted
+      - run:
+          name: "Run tests"
+          command: mix test
+      - run:
+          name: "Run dialyzer"
+          command: mix dialyzer
+      - save_cache:
+          key: elixir-build-v1-{{ checksum "mix.lock" }}
+          paths:
+            - '_build'
+            - 'deps'
+            - '~/.mix'
